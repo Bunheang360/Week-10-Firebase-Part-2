@@ -35,6 +35,9 @@ class LibraryContent extends StatelessWidget {
             onTap: () {
               mv.start(data[index].song);
             },
+            onLikeTap: () async {
+              await mv.likeSong(data[index]);
+            }
           ),
         );
     }
