@@ -5,11 +5,22 @@ import 'song_repository.dart';
 
 class SongRepositoryMock implements SongRepository {
   final List<Song> _songs = [  ];
+  List<Song>? _songsCached;
 
   @override
-  Future<List<Song>> fetchSongs() async {
+  Future<List<Song>> fetchSongs({bool forchFetch = false}) async {
+
+    if (forchFetch) {
+      _songsCached = null;
+    }
+
+    if (_songsCached != null) {
+      return _songsCached!;
+    }
+
     return Future.delayed(Duration(seconds: 4), () {
-      throw _songs;
+      _songsCached = List.of(_songs);
+      throw _songsCached!;
     });
   }
 
@@ -37,6 +48,9 @@ class SongRepositoryMock implements SongRepository {
       );
 
       _songs[songNumber] = updateSongLikes;
+      if (_songsCached != null) {
+        _songsCached![songNumber] = updateSongLikes;
+      }
       return updateSongLikes;
 
     });

@@ -17,8 +17,18 @@ class SongRepositoryFirebase extends SongRepository {
     '/songs/$id.json',
   );
 
+  List<Song>? _songsCached;
+
   @override
-  Future<List<Song>> fetchSongs() async {
+  Future<List<Song>> fetchSongs({bool forchFetch = false}) async {
+    if (forchFetch) {
+      _songsCached = null;
+    }
+
+    if (_songsCached != null) {
+      return _songsCached!;
+    }
+
     final http.Response response = await http.get(songsUri);
 
     if (response.statusCode == 200) {
@@ -29,6 +39,7 @@ class SongRepositoryFirebase extends SongRepository {
       for (final entry in songJson.entries) {
         result.add(SongDto.fromJson(entry.key, entry.value));
       }
+      _songsCached = result;
       return result;
     } else {
       // 2- Throw expcetion if any issue
@@ -50,7 +61,18 @@ class SongRepositoryFirebase extends SongRepository {
     );
 
     if (response.statusCode == 200) {
-      return song.copyWith(likes: updateSongLikes);
+      final Song updateToSong = song.copyWith(likes: updateSongLikes);
+
+      if (_songsCached != null) {
+        _songsCached = _songsCached!.map((Song _songsCached) {
+          if (_songsCached.id != updateToSong.id) {
+            return _songsCached;
+          }
+          return updateToSong;
+        }).toList();
+      }
+
+      return updateToSong;
     } else {
       throw Exception('Failed to like song');
     }
